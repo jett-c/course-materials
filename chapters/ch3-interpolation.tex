@@ -1,0 +1,192 @@
+\chapter{Numerical Interpolation}
+
+\lesson[7]{2025/09/29}{Lagrange Interpolation}
+
+\begin{nameless}
+    Given a set of data points related by some unknown function we want to approximate the function values at other points via interpolation. Let \(\{(x_i, y_i)\}\) be a set of data points satisfying \(y_i = f(x_i)\), we would like to find
+    \[f(x), x\neq x_i.\]
+\end{nameless}
+
+One popular choice is polynomials
+\[P_n(x)= a_nx^n + \cdots + a_0\]
+because
+\begin{itemize}
+    \item continuous;
+    \item easy derivatives and integrals calculation;
+    \item uniformly approximate any continuous functions.
+\end{itemize}
+
+\begin{theorem}[Weierstrass approximation theorem]
+    Let \(f \in \mathcal{C}^0[a, b]\), then for any \(\varepsilon > 0\), there exists a polynomial \(p(x)\) so that
+    \[\forall x \in [a, b], |f(x)-p(x)|<\varepsilon.\]
+\end{theorem}
+
+\section{Lagrange Interpolation}
+
+With the well convergence guaranteed, the next step is to find a "good" polynomial. The first insight would be Taylor expansion
+\[f(x) \approx \sum_{k=0}^n \frac{f^{(k)}(x_0)}{k!}(x-x_0)^k.\]
+
+However, this approximation is bad because only relies on local information.
+
+\begin{example}
+    \(f(x) = e^x\), the error becomes worse further away from \(x_0=0\).
+\end{example}
+
+\begin{example}
+    Even worse, consider \(f(x) = \frac{1}{x} \approx \sum_{k=0}^n (-1)^k (x-1)^k\), the value diverges for \(|x-1| \geq 1\).
+\end{example}
+
+Also, Taylor expansion requires derivative information, which requires \(f\) to be smooth.
+
+This comes to the idea of Lagrange polynomial.
+
+\begin{algorithm}
+    \KwData{interpolation points \((x_i, y_i)_{i=0}^n\) satisfying \(y_i = f(x_i)\)}
+    \KwResult{polynomial \(L\) satisfying \(L(x_i) = y_i\)}
+    Construct the Lagrange basis \(L_j\) satisfying
+    \Eqn{
+        L_j(x_i) &= \delta_{jk} \\
+        &= \frac{(x-x_0) \cdots (x-x_{k-1})(x-x_{k+1})\cdots(x-x_n)}{(x_j-x_0) \cdots (x_j-x_{k-1})(x_j-x_{k+1})\cdots(x_j-x_n)} \\
+        &= \prod_{i = 0, \neq j}^n \frac{x-x_i}{x_j-x_i}
+    } \;
+    \Eqn{
+        L(x) &= y_0L_0(x) + \cdots + y_nL_n(x) \\
+        &= \sum_{i=0}^n y_jL_j(x)
+    }
+    
+    \caption{Lagrange interpolation}
+\end{algorithm}
+
+The error bound can be found by the Lagrange remainder formula
+\begin{theorem}[Error bound of Lagrange interpolation]
+    Suppose \(x_i \in [a, b]\) and \(f \in \mathcal{C}^{n+1}[a, b]\), then
+    \[f(x) = L(x) + \frac{f^{(n+1)}(\xi_x)}{(n+1)!}(x-x_0)\cdots(x-x_n).\]
+    Hence, the error is
+    \[|f(x) - L(x)| \leq \max_{[a, b]}\left|\frac{f^{(n+1)}(x)}{(n+1)!}(x-x_0)\cdots(x-x_n)\right|.\]
+\end{theorem}
+
+This means the Lagrangian interpolation captures polynomials with degree at most \(n\).
+
+Before starting the proof, we need a lemma.
+
+\begin{lemma}[Generalized Rolle's theorem]
+    Let \(f\in\mathcal{C}^0[a, b]\) be \(n\)-times differentiable on \((a, b)\). If \(f(x)=0\) at \(n+1\) distinct points \(x_0 \leq \cdots \leq x_n, x_i \in [a, b]\), then there exists a number \(c \in [x_0, x_n] \subset (a, b)\) with
+    \[f^{(n)}(c) = 0.\]
+\end{lemma}
+\begin{proof}
+    For \(n=1\), if \(f\) is not a constant function, then the maximum or minimum exists in some \(c \in (a, b)\). Then \(f'(c)=0\) considering limits on both sides. For \(n > 1\), there are \(n\) points with \(f' = 0\), so continue by induction.
+\end{proof}
+
+Now we give a proof for the error bound of Lagrange interpolation.
+\begin{proof}
+    For \(x=x_i\), the relation is trivial since one of \(x-x_i=0\). For \(x \neq x_i\), define
+    \[g(t) = f(t) - L(t) - (f(x) - L(x))\prod_{i=0}^n \frac{t-x_i}{x-x_i}.\]
+    Note that \(g \in \mathcal{C}^{n+1}[a, b]\) and \(g(x_i) = 0\). So by the generalized Rolle's theorem, there exists \(\xi \in (a, b)\) satisfying \(g^{(n+1)}(\xi) = 0\). The equality can be shown considering \(L^{(n+1)}=0\) and \(\frac{d^{n+1}}{dt^{n+1}}\prod_{i=0}^n\frac{t-x_i}{x-x_i} = \frac{1}{\prod_{i=0}^n (x-x_i)}\).
+\end{proof}
+
+\lesson[8]{2025/10/06}{Divided Difference and Newton Interpolation}
+
+\section{Newton Interpolation}
+
+Motivation: Suppose we have the Lagrangian interpolation for \(\{(x_i, y_i)\}_{i=0}^n\). Now we have a new data point \((x_{n+1}, y_{n+1})\), we want to reuse the information instead of reconstructing the interpolation.
+
+Let \(L_n(x)\) be the \(n\)-th order Lagrange polynomial satisfying \(L_n(x_i) = f(x_i)\). Alternatively, it can be expressed as
+\[L_n(x) = a_0+a_1(x-x_0)+\cdots+a_n(x-x_0)\cdots(x-x_{n-1}).\]
+Note that
+\[\begin{cases}
+    f(x_0) &= a_0 \\
+    f(x_1) &= a_0 + a_1(x_1-x_0) \To a_1 = \frac{f(x_1) - f(x_0)}{(x_1-x_0)}.
+\end{cases}\]
+
+This motivates the divided difference
+\begin{definition}[Divided difference]
+    The divided difference of function \(f\) is
+    \[f[x_0, \cdots, x_k] = \begin{cases}
+        \frac{f[x_1, \cdots, x_k]-f[x_0, \cdots, x_{k-1}]}{x_k-x_0}, &k \neq 0 \\
+        f(x_0), &k = 0
+    \end{cases}.\]
+\end{definition}
+
+In calculation, we can write down the value of \(f(x_i)\) in each column and evaluate column-by-column.
+
+We can express the coefficients in terms of divided difference.
+\begin{prop}
+    \(a_k=f[x_0, \cdots, x_k]\)
+\end{prop}
+
+Hence, this method is known as Newton interpolation, which give the same polynomial.
+
+\begin{algorithm}
+    \KwData{interpolation points \((x_i, y_i)_{i=0}^n\) satisfying \(y_i = f(x_i)\)}
+    \KwResult{Newton interpolation polynomials \(P_k, 0 \leq k \leq n\) satisfying \(L(x_i) = y_i\) for \(0 \leq k \leq i\)}
+    \(P_0(x) \leftarrow f[x_0]\)\;
+    \For{\(k\leftarrow 1\)\KwTo\(n\)}{
+    \(P_k(x) = P_{k-1}(x)+f[x_0, \cdots, x_k](x-x_0)\cdots(x-x_k)\)\;
+    }
+    \caption{Newton Interpolation}
+\end{algorithm}
+
+\begin{theorem}[Error of Newton Interpolation]
+    Let \(f:[a, b] \to \R\) and \(P_n(x)\) be the Newton interpolation with \(x_0, \cdots, x_n\). Then for \(x \in [a, b]\), we have
+    \[f(x) - P_n(x) f[x, x_0, \cdots, x_n]\prod_{i=0}^n(x-x_i).\]
+    In other words, the error is
+    \[|f(x) - P_n(x)| \leq \sup_{x \in [a, b]}|f[x, x_0, \cdots, x_n]|\prod_{i=0}^n|x-x_i|.\]
+\end{theorem}
+\begin{proof}
+    Expand \(f[x, x_0, \cdots, x_n]\) and divided differences containing \(x\), and then use the definition of Newton interpolation.
+\end{proof}
+
+\lesson[9]{2025/10/08}{Piecewise Interpolation}
+
+\section{Piecewise Interpolation}
+
+Problem of Lagrange interpolation: consider Runge function \(R(x) = \frac{1}{1+x^2}\), the \(R^{(n)}(x)/n!\) is \(1\) at \(x = 0\), and \(\prod_{i=0}^n (x-x_i)\) grows large.
+
+As the distance between interpolation points are small locally, we can construct a piecewise interpolation with just local information.
+
+\begin{algorithm}
+    \KwData{Interpolation points \(\{(x_i, y_i = f(x_i))\}_{i=0}^n\), WLOG \(x_0 < \cdots < x_n \)}
+    \KwResult{Piecewise linear interpolation\(P_n(x): [x_0, x_n] \to \R\)}
+    Construct piecewise linear basis \(I_i(x_j) = \delta_{ij}\), which are triangular spikes satisfying \(I_i(x_{i-1}) = I_i(x_{i+1}) = 0, I_i(x_i) = 1\). \;
+    \[P_n(x) = \sum_{i=0}^ny_iI_i(x)\]\;
+    \caption{Piecewise linear interpolation}
+\end{algorithm}
+
+\begin{theorem}[Error of piecewise linear interpolation]
+    The error is
+    \[|P_n(x)-f(x)| \leq \frac{\max_{1\leq i \leq n}|x_i-x_{i-1}|^2}{8}\max_{[x_0, x_n]}|f''|.\]
+\end{theorem}
+\begin{proof}
+    Fix \(x\), if \(x = x_i\), the inequality is trivial. For \(x \neq x_i\), choose interval \(x \in (x_i, x_{i+1})\) and consider
+    \[w(t) = f(t) - P_n(t) -(f(x) - P_n(x))\frac{(t-x_i)(t-x_{i+1})}{(x-x_i)(x-x_{i+1})}.\]
+    Note that \(w(x_i) = w(x_{i+1}) = w(x) = 0\). By generalized Rolle's theorem, there exists \(\xi \in (x_i, x_{i+1})\) so that \(w''(\xi)=0\). Arranging back the terms give
+    \[f(x) - P_n(x) = \frac{f''(\xi)}{2}(x-x_i)(x-x_{i+1}).\]
+    Using \(|x-x_i||x-x_{i+1}| \leq \frac{(|x_{i+1}-x| + |x_{}-x_{i}|)^2}{4} = \frac{(x_{i+1}-x_i)^2}{4}\) gives
+    \[|P_n(x)-f(x)| \leq \frac{\max_{1\leq i \leq n}|x_i-x_{i-1}|^2}{8}\max_{[x_0, x_n]}|f''|. \qed\]
+\end{proof}
+
+Problem: undifferentiable kninks at the knots \(x_i\).
+
+Solution: \(k\)-th order spline, \(S_k(x) \in \mathcal{C}^{k-1}(x_0, x_n)\) satisfying
+\begin{itemize}
+    \item piecewise polynomial with degree \(\leq k\),
+    \item\(S_k(x_i) = y_i\),
+\end{itemize}
+
+Usually they take \(k = 3\) i.e. cubic spline, which is defined to be
+\[S_{3, i}(x) = \frac{m_i(x_{i+1}-x_i)^3}{6h_i} + \frac{m_{i+1}(x-x_i)^3}{6h_i} + (y_i - \frac{m_ih^2_i}{6})\frac{x_{i+1}-x_i}{h_i} + (y_{i+1}-\frac{m_{i+1}h_i^2}{6})\frac{x-x_i}{h_i}.\]
+It satisfies
+\begin{itemize}
+    \item \(S''_{3, i}(x_i^+) = m_i\),
+    \item \(S_{3, i}(x_{i+1}^-) = m_{i+1}\),
+    \item \(S_{3, i}(x_i) = y_i\),
+    \item \(S_{3,i}(x_{i+1}) = y_{i+1}\).
+\end{itemize}
+
+Continuity of \(S_3'\) is ensured by solving a linear system consists of knots.
+
+Boundary condition
+\begin{itemize}
+    \item Natural: \(S''(x_0) = S''(x_n) = 0 \To m_0 = m_N = 0\)
+    \item Clamped: \(S'(x_0) = \alpha, S''(x_n) = \beta\)
+\end{itemize}

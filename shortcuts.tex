@@ -1,0 +1,88 @@
+\usepackage{geometry}
+\usepackage{amsmath,amsthm,amssymb,mathtools,mathrsfs}
+\usepackage[table]{xcolor}
+\usepackage{fullpage}
+\usepackage{enumitem}
+\usepackage{tikz-cd}
+\usepackage{setspace}
+\usepackage{nicematrix}
+\usepackage{graphics, float}
+\usepackage{circledsteps}
+\usepackage{multirow}
+\setlength{\parindent}{0.0in}
+\setlength{\parskip}{12pt}
+
+\newtheorem{Thm}{Theorem}[section]
+\newtheorem{Lem}[Thm]{Lemma}
+\newtheorem{Prop}[Thm]{Proposition}
+\newtheorem{Cor}[Thm]{Corollary}
+\newtheorem{Rem}[Thm]{Remark}
+\newtheorem{Def}[Thm]{Definition}
+\newtheorem{Prob}{}[section]
+
+\def\sep{\vspace{1cm}\hrule\vspace{1cm}}
+\def\tab{\;\;\;\;\;\;}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%Feel Free to Add Your Own Shortcuts%%%
+
+\def\R{\mathbb{R}}
+\def\Q{\mathbb{Q}}
+\def\N{\mathbb{N}}
+\def\C{\mathbb{C}}
+\def\Z{\mathbb{Z}}
+
+\def\a{\alpha}
+\def\b{\beta}
+\def\c{\gamma}
+\def\d{\delta}
+\def\e{\epsilon}
+\def\h{\theta}
+\def\l{\lambda}
+\def\w{\omega}
+
+\def\bu{\mathbf{u}}
+\def\bv{\mathbf{v}}
+\def\bw{\mathbf{w}}
+\def\bx{\mathbf{x}}
+\def\bf{\mathbf}
+
+\def\la{\langle}
+\def\ra{\rangle}
+
+\def\st{\text{ s.t. }}
+\def\ust{Please don't go to UST}
+
+\def\iff{\Longleftrightarrow}
+\def\to{\rightarrow}
+\def\To{\Rightarrow}
+\def\inj{\hookrightarrow}
+\def\surj{\twoheadrightarrow}
+\def\up{\uparrow}
+\def\down{\downarrow}
+
+\def\x{\times}
+\def\<{\langle}
+\def\>{\rangle}
+\def\oo{\infty}
+\def\normal{\triangleleft}
+\def\ds{\displaystyle}
+
+\newcommand{\mat}[1]{\begin{pmatrix}#1 \\ \end{pmatrix}}
+\newcommand{\case}[2][lllllllllllllllllllllllllllllllllllll]{\left\{\begin{array}{#1}#2 \\ \end{array}\right.}
+\newcommand{\Eq}[1]{\begin{align}#1\end{align}} %Equations with numberings%
+\newcommand{\Eqn}[1]{\begin{align*}#1\end{align*}}  % Equations without numberings%
+\newcommand{\floor}[1]{\lfloor#1\rfloor}
+\newcommand{\abs}[1]{\bigg| #1 \bigg|}
+
+\DeclareMathOperator{\Span}{Span}
+\DeclareMathOperator{\Ker}{Ker}
+\DeclareMathOperator{\Image}{Im}
+\DeclareMathOperator{\Nul}{Nul}
+\DeclareMathOperator{\Col}{Col}
+\DeclareMathOperator{\Rank}{Rank}
+\DeclareMathOperator{\Tr}{Tr}
+\DeclareMathOperator{\det}{det}
+\DeclareMathOperator{\Proj}{Proj}
+\DeclareMathOperator{\deg}{deg}
+\DeclareMathOperator{\diag}{diag}

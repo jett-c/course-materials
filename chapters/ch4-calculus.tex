@@ -1,0 +1,212 @@
+\chapter{Numerical Differentiation and Integration}
+
+\lesson[10]{2025/10/13}{Numerical Differentiation}
+
+\section{Numerical Differentiation}
+
+\begin{nameless}
+    Given data points \(\{(x_i, y_i = f(x_i)\}, x_i \approx x\), we would like to approximate \(f'(x)\).
+\end{nameless}
+
+The derivative of \(f\) is given by
+\[f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h}.\]
+Simply, this motivates the forward difference
+\[f'(x)  \approx \frac{f(x+h) - f(x)}{h}.\]
+
+Similarly, we have the backward difference
+\[f'(x)  \approx \frac{f(x) - f(x-h)}{h}\]
+and the central difference
+\[f'(x) \approx\frac{f(x+h) - f(x-h)}{2h}\]
+
+\begin{prop}[Error bounds of simple finite difference methods]
+    The forward and backward difference methods have \(O(h)\) error, while the central difference method have \(O(h^2)\) error.
+\end{prop}
+\begin{proof}
+    Expand \(f(x-h), f(x), f(x+h)\) by Taylor series up to appropriate order, so only the derivative and residue remain.
+\end{proof}
+
+\begin{algorithm}
+    \KwData{Data points \(\{(x_i(x, h), f(x_i))\}_{i=1}^n\)}
+    \KwResult{Approximate derivative \(f'(x)\)}
+    Expand each of \(f(x_i)\) around \(x\) up to \(n\)th order by Lagrange remainder theorem \;
+    Match each coefficient in lowest orders of \(h\), solve the system of linear equation and find the corresponding coefficients.
+    \label{alg:derivative}
+    \caption{Finite difference approximation for derivatives.}
+\end{algorithm}
+
+Obviously, we have
+\begin{prop}
+    The error from approximation points is \(O(h^{k-1})\).
+\end{prop}
+
+Equivalently, we can consider Lagrange interpolation on the data points and then take the derivative of the polynomial, but it is too complicated.
+
+\begin{example}
+    Given the values at \(x, x+h, x+2h\), we let \(f'(x) \approx \frac{c_0f(x) + c_1 f(x+h)+c_2f(x+2h)}{h}\). Taylor approximation gives
+    \[\begin{cases}
+        f(x+h) &= f(x) + hf'(x) + \frac{h^2}{2}f''(x) + \frac{h^3}{6} f^{(3)}(\xi_1) \\
+        f(x+2h) &= f(x) + 2hf'(x) + 2h^2f''(x) + \frac{4h^3}{3} f^{(3)}(\xi_2)
+    \end{cases}.\]
+    Comparing coefficients of \(1, h, h^2\) gives
+    \[\begin{pmatrix}
+        1 & 0 & 0 \\ 1 & 1 & \frac{1}{2} \\ 1 & 2 & 2
+    \end{pmatrix}\begin{pmatrix}
+        c_0 \\ c_1 \\ c_2
+    \end{pmatrix} = \begin{pmatrix}
+        0 \\ 1 \\ 0
+    \end{pmatrix} \Rightarrow c_0 = -3, c_1 = 4, c_2 = 2\]
+    The error term is \(O(h^2)\)
+\end{example}
+
+To compute higher-order derivatives, we can use the same technique, except the target coefficients (on the RHS) are different.
+
+\lesson[11]{2025/10/20}{Numerical Integration}
+
+\section{Integration}
+
+\begin{nameless}
+    Approximate \(\int_a^b f(x) dx \approx \sum_{i=0}^n a_if(x_i)\).
+\end{nameless}
+
+\subsection{Newton-Cotes quadrature}
+
+Given the data points \(\{x_i, f(x_i)\}_{i=0}^n \subset [a, b]\), construct Lagrange interpolating polynomial \(P_n(x)\) and approximate \(\int_a^b f(x) dx \approx\int_a^b P_n(x)dx\). The error is thus
+\[e = \frac{1}{(n+1)!} \int_a^b \prod_{i=0}^n (x-x_i) f^{(n+1)}(\xi) dx.\]
+
+\(0\)th-order approximation: approximate function by a constant
+
+\(1\)st-order approximation: approximate by an affine function
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Rule} & \textbf{\(x_i\)}  & \textbf{\(a_i / (b-a)\)} & \textbf{Error bound}     \\ \hline
+Left          & \(a\)             & 1                        & \(\frac{M_1(b-a)^2}{2}\) \\ \hline
+Right         & \(b\)             & 1                        & \(\frac{M_1(b-a)^2}{2}\) \\ \hline
+Mid-point     & \(\frac{a+b}{2}\) & 1                        & \(\frac{M_2(b-a)^3}{24}\) \\ \hline
+Trapezoidal   & \(a, b\)          & 1/2, 1/2                 & \(\frac{M_2(b-a)^3}{12}\)                     \\ \hline
+\end{tabular}
+\caption{Low order approximation rules for integrals.}
+\end{table}
+
+Note that \(M_k := \sup_{[a, b]}f^{(k)}\).
+
+While the error for \(0\)-th order approximation can be found by Taylor expansion, 
+the error for trapezoidal rule can be approximated by the integral mean value theorem.
+
+\begin{theorem}[Integral mean value theorem]
+    Let \(f \in \mathcal{C}^0[a, b], g \in \mathcal{R}[a, b]\) and \(g\) does not change sign on \([a, b]\), then there exists \(c \in (a, b)\) satisfying
+    \[\int_a^b f(x)g(x) dx = f(c) \int_a^b g(x) dx.\]
+\end{theorem}
+
+If we approximate the function as a polynomial at points \(a, \frac{a+b}{2}, b\), we get the Simpson's rule
+\[\int_a^b f(x) dx \approx \frac{b-a}{6}\left(f(a) + 4 f\left(\frac{a+b}{2}\right) + f(b)\right)\]
+with error
+\[\frac{M_4 (b-a)^5}{180}.\]
+
+However, when \((b-a)\) becomes large, or the function have large derivatives. the error will be large. From piecewise interpolation, we have composite quadrature: applying a quadrature in each sub-intervals \([x_{i-1}, x_i]\) with length \(h = \frac{n}{b-a}\).
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Rule} & \textbf{\(x_i^\ast\)}            & \textbf{\(a_i / h\)} & \textbf{Error bound}         \\ \hline
+Mid-point     & \(\frac{x_{i-1}+x_i}{2}, i > 0\) & 1                    & \(\frac{M_2(b-a)^3}{24n^2}\) \\ \hline
+Trapezoidal & \(x_0, \cdots, x_n\) & \(1/2, 1, \cdots, 1, 1/2\)          & \(\frac{M_2(b-a)^3}{12n^2}\)   \\ \hline
+Simpson's   & \(x_0, \cdots, x_n\) & \(1/6, 4/6, 2/6, 4/6, 2/6, \cdots, 4/6, 1/6\) & \(\frac{M_4(b-a)^5}{180 n^4}\) \\ \hline
+\end{tabular}
+\caption{Composite quadrature rules for integration}
+\end{table}
+
+\subsection{Gauss Quadrature}
+Alternatively, we can see the accuracy from other perspective.
+
+\begin{definition}[Degrees of accuracy of quadrature formula]
+    A quadrature formula is \textit{\(n\)-th order accurate} iff the error is zero for all polynomials degree within \(n\), but not some of degree \(n+1\).
+\end{definition}
+
+Approximating \(\int_a^b f(x) dx \approx \sum_{i=0}^n \omega_i f(x_i)\), we have \(2(n+1)\) unknowns, so the quadrature \((2n+1)\)-order accurate. The equations are
+\[\begin{cases}
+    \omega_0 + \cdots + \omega_n &= b-a \\
+    \omega_0x_0 + \cdots + \omega_nx_n &= \frac{b^2-a^2}{2} \\
+    &\vdots \\
+    \omega_0x_0^{2n+1} + \cdots + \omega_n x_n^{2n+1} &= \frac{b^{2n+2}-a^{2n+2}}{(2n+1)!}
+\end{cases}\]
+
+Problem: unbounded ends
+
+Solution: weighted Gauss quadrature \(\int_a^b f(x) w(x) dx \approx \sum_{i=0}^n \omega_if(x_i)\), so that both sides agree for polynomials with degree within \(n\).
+
+Examples
+\begin{itemize}
+    \item Gauss-Chebyshev: \(\int_{-1}^1 \frac{f(x)}{\sqrt{1-x^2}}dx\)
+    \item Gauss-Laguerre: \(\int_{0}^{+\infty} e^{-x} f(x) dx\)
+    \item Gauss-Hermite: \(\int_{-\infty}^{+\infty}e^{-x^2}f(x) dx\)
+\end{itemize}
+
+\lesson[12]{2025/10/22}{Truncation Error \& Stability of Numerical ODE}
+
+\section{ODE}
+
+\begin{nameless}
+    Aim: Solve the initial value problem (IVP)
+    \[\begin{cases}
+        \frac{dy}{dt} &= f(t, y), t \in [0, T] \\
+        y(0) &= y_0
+    \end{cases}\]
+    on a mesh \(0 = t_0 \leq \cdots \leq t_N = T\).
+\end{nameless}
+
+Denote \(y_k \approx y(t_k)\) as the approximate solution, we initialize \(y_0 :+ y(t_0)\) first then update \(y_{k+1}\) from \(y_0, \cdots, y_k\).
+
+\subsection{Euler Methods}
+
+Using a uniform mesh \(t_n = nh, h = T/N\), we approximate the derivative \(y'(t_n)\) to the 1st order by
+\[y'(t_n) \approx \begin{cases}
+    \frac{y_{n+1}-y_n}{h} &\text{Forward} \\
+    \frac{y_{n} - y_{n-1}}{h} &\text{Backward}
+\end{cases}.\]
+Then we update each step by
+\begin{align*}
+    y_{n+1} &= y_n + hf(t_n, y_n) &\text{Forward}; \\
+    y_{n+1} -hf(t_{n+1}, y_{n+1}) &= y_n &\text{Backward}.
+\end{align*}
+
+Equivalently, they can be written as approximation schemes. For example, the forward Euler method is given by
+\[L_h(y(t_n)) = \frac{y_{n+1}-y_n}{h} - f(t_n, y_n)\]
+satisfying \(L_h(y_h(t_n)) = 0\) 
+
+\begin{definition}[Local truncation error]
+    The local truncation error is \(L_h(y(t_n))\), where \(y(t_n)\) is the exact solution. The method is said to be \(p\)-th order accurate if \(T_n = O(h^p)\).
+\end{definition}
+
+\begin{prop}
+The forward Euler method is 1st order accurate.
+\end{prop}
+\begin{proof}
+    Expand \(y(t_{n+1})\) to the second order using Lagrange remainder theorem. We have \(T_n \leq \frac{1}{2}\sup_{(0, T)}|y''(t)|h\).
+\end{proof}
+
+While the local truncation error focuses on each step, the global error focuses on the whole interval, given by \(y_N-y(t_N)\).
+
+\begin{prop}
+    Suppose \(f(t, y)\) is Lipschitz continuous in \(y\) i.e. there exists \(L > 0\) such that \(|f(t, y_1)-f(t, y_2)| \leq L|y_1-y_2|\). Suppose there is an unique solution \(y(t)\) to the IVP. Let \(M = \sup_{[a, b]}y''(t)\). The global error of the forward Euler method is \(O(h)\).
+\end{prop}
+\begin{proof}
+    The global error is
+    \begin{align*}
+    |e_N| &\leq |e_{N-1}| + Lh|y(t_{N-1}) - y_{N-1}| + \frac{h^2}{M} \\
+    &\leq (1+Lh)|e_{N-1}| + \frac{h^2}{M} \\
+    &\leq \cdots \\
+    &\leq (1+Lh)^N |e_0| + Mh\frac{(1+Lh)^{n+1}-1}{2L} \\
+    &\leq \exp(LT)|e_0| + \frac{Mh}{2L}(\exp(LT)-1)
+    \end{align*}
+    With exact initial condition, \(e_0 = 0\), so the global error is \(O(h)\). \(\qed\)
+\end{proof}
+
+Next, we would like to study the stability of the method. This determines whether the method converges.
+
+\begin{definition}{Absolute Stability}
+    
+\end{definition}

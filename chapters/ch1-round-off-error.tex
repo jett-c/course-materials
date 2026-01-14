@@ -1,0 +1,142 @@
+\chapter{Computer Arithmetic}
+
+\lesson[1]{01/09/2025}{Introduction, Floating Number and Round-Off Error}
+
+\section{Floating Number}
+
+\subsection{Decimal and Binary Numbers}
+In daily life, numbers are usually represented in decimals, with allowed digits \(\{0, 1, \cdots, 9\}\). However, computer processes information in binary bits, with allowed bits \(\{0, 1\}\).
+
+\begin{example}{Binary $\to$ Decimal}
+\[
+11.101_2 \;=\; 1\cdot 2^1 + 1\cdot 2^0 + 1\cdot 2^{-1} + 0\cdot 2^{-2} + 1\cdot 2^{-3}
+= 3.625.
+\]
+\end{example}
+
+\subsection{Floating Number Representation}
+In a binary floating-point system, numbers are represented as
+\[
+\mathbb{F}=\bigl\{\pm\,0.1d_2\cdots d_{t+1}\times 2^{m}\bigr\}\cup\{0\},
+\]
+where $d_2,\dots,d_{t+1}\in\{0,1\}$ and $m \in [L, U]$.
+\begin{itemize}
+    \item \(t\) is precision
+    \item \(m\) is exponent
+\end{itemize}
+
+\paragraph{IEEE formats.}
+\begin{itemize}
+  \item \textbf{Single precision (32-bit):} $t=23$, $L=-126$, $U=127=2^7-1$ i.e. 1 bit for sign, 8 bits for exponent, 23 bits for precision.
+  \item \textbf{Double precision (64-bit):} $t=52$, $L=-1022$, $U=1023=2^{10}-1$.
+\end{itemize}
+
+\subsection{Rounding}
+A real number $x\in\mathbb{R}$ is represented by
+\[
+x \approx \mathrm{fl}(x) \in \mathbb{F}
+\]
+Typical rounding choices:
+\begin{itemize}
+  \item Round up / round down
+  \item \textbf{Round to nearest (ties to even)} \;-- IEEE 754 default
+\end{itemize}
+Thus an \emph{inherent} error exists: $x\neq \mathrm{fl}(x)$.
+
+\section{Round off Error}
+
+\paragraph{Machine precision (unit roundoff).}
+\[\varepsilon_{\text{machine}}=2^{-(t+1)}.\]
+\begin{itemize}
+  \item Single: $2^{-24}\sim O(10^{-8})$.
+  \item Double: $2^{-53}\sim O(10^{-16})$.
+\end{itemize}
+
+\begin{example}[Round-off in trigonometric function]
+    $\sin(5\pi)=0$, yet a typical double-precision routine yields a value on the order of $10^{-16}$ (e.g.\ $6.12\times 10^{-16}$ using \verb|julia|).
+\end{example}
+
+\subsection{Cancellation in Sums}
+
+Adding (or subtracting) small numbers with big numbers would remove the precision in small numbers.
+
+\begin{example}[Small + Big goes wrong]
+\[
+x=0.23371258\times 10^{-4},\quad
+y=0.33678429\times 10^{2},\quad
+z=-0.33677811\times 10^{2}.
+\]
+\textbf{Exact:} \; $x+y+z = 0.641371258\times 10^{-3}$ (9 significant digits).
+
+\medskip
+\noindent\textbf{Add Small + Big first (worse):}
+\[
+\bigl(\mathrm{fl}(x)+\mathrm{fl}(y)\bigr)+\mathrm{fl}(z)=0.64100000\times 10^{-3}.
+\]
+
+\noindent\textbf{Add Big + Big first (better):}
+\[
+\mathrm{fl}(x)+\bigl(\mathrm{fl}(y)+\mathrm{fl}(z)\bigr)=0.64137126\times 10^{-3}.
+\]
+\end{example}
+
+\subsection{Cancellation in Differences}
+The difference in large numbers is also unstable.
+\begin{example}
+Consider
+\[
+\sqrt{1+10^{-16}}-1.
+\]
+In floating arithmetic, 
+\[
+\mathrm{fl}(\sqrt{1+10^{-16}})-\mathrm{fl}(1)=0
+\]
+due to catastrophic cancellation.
+
+\paragraph{Algebraic reformulation (stable).}
+\[
+\sqrt{1+10^{-16}}-1=\frac{10^{-8}}{\sqrt{1+10^{-16}}+1}.
+\]
+Then in floating arithmetic,
+\[
+\mathrm{fl}\!\left(\frac{10^{-8}}{\sqrt{1+10^{-16}}+1}\right)\approx 5\times 10^{-9}.
+\]
+
+\paragraph{Code demo (Julia-like).}
+\begin{itemize}
+  \item \verb|sqrt(1+1e-16) - 1|
+  \item \verb|1e-8 / (sqrt(1+1e-16) + 1)|
+\end{itemize}
+\end{example}
+
+\subsection{Division by Small Numbers}
+\begin{example}
+\begin{align*}
+\mathrm{fl}(10^{-15}) + 1 - 1 &\approx 1.11\times 10^{-15}\quad\text{(very small absolute error)},\\
+\text{Exact:}\quad \frac{1+10^{-15}-1}{10^{-15}} &= 1,\\
+\text{Floating:}\quad \frac{\mathrm{fl}(10^{-15})+1-1}{\mathrm{fl}(10^{-15})} &\approx 1.11 \quad\text{(huge relative error $\sim 11\%$)}.
+\end{align*}
+
+\paragraph{Code demo (Julia-like).}
+\begin{itemize}
+  \item \verb|(1+1e-15) - 1|
+  \item \verb|((1+1e-15)-1)/(1e-15)|
+\end{itemize}
+\end{example}
+
+\paragraph{A Real-World Cautionary Tale}
+Accumulated round-off can snowball over many steps. On June 4, 1996, the ESA \emph{Ariane 5} rocket failed due to mishandling of floating-point conversions / round-off in software.
+
+\section*{Summary}
+\begin{itemize}
+  \item Converting between binary and decimal
+  \item Understanding round-off error and unit roundoff
+  \item Typical pitfalls: (i) small+big sums, (ii) subtraction of close numbers, (iii) division by small numbers
+\end{itemize}
+
+\paragraph{References.}
+\begin{itemize}
+  \item Jeffrey R.\ Chasnov, \emph{Numerical Methods}.
+  \item Pingwen Zhang \& Tiejun Li, \emph{Numerical Analysis} (Chinese).
+\end{itemize}
+
